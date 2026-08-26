@@ -1,0 +1,13 @@
+*.log
+*.pot
+*.pyc
+__pycache__/
+db.sqlite3
+media
+*.bak
+.env*
+!.env.example*
+env/
+venv/
+.vscode/*
+.DS_Store
