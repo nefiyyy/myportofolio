@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -7,7 +8,7 @@
     <title>Nafisa Naila Andian - Portfolio</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
 
@@ -30,7 +31,7 @@
                 </div>
                 <div class="hero-photo">
                     <div class="photo-block"></div>
-                    <img class="avatar" src="/static/img/Nafisa Naila Andian.png" alt="Photo of Nefi">
+                    <img class="avatar" src="/static/img/nafisa-profile.jpg" alt="Photo of Nefi">
                 </div>
                 <div class="hero-details">
                     <p class="bio">Information System student at University of Indonesia.</p>
@@ -46,8 +47,80 @@
                     </dl>
                     <div class="social-links">
                         <a href="https://github.com/" class="social-link">GitHub</a>
-                        <a href="https://linkedin.com/" class="social-link">LinkedIn</a>
+                        <a href="https://www.linkedin.com/in/nafisa-naila-andian-3b81a9380/"
+                            class="social-link">LinkedIn</a>
                         <a href="mailto:nafisaand23@gmail.com" class="social-link">Email</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="skills" id="skills">
+            <div class="container">
+                <h2 class="section-title">Skills</h2>
+                <div class="skills-grid">
+                    <div class="skill-card">
+                        <span class="skill-badge">BILINGUAL</span>
+                        <h3 class="skill-title">Bahasa Indonesia (Native) & English (B2)</h3>
+                        <p class="skill-desc">Native Indonesian speaker with B2-level English proficiency, communicating
+                            fluently across academic and casual contexts.</p>
+                    </div>
+                    <div class="skill-card">
+                        <span class="skill-badge">FILM PHOTOGRAPHER</span>
+                        <h3 class="skill-title">Analog Photography — Olympus 35mm</h3>
+                        <p class="skill-desc">Shoots on an Olympus 35mm film camera, capturing everyday moments with a
+                            manual, hands-on process.</p>
+                    </div>
+                    <div class="skill-card">
+                        <span class="skill-badge">DIVER</span>
+                        <h3 class="skill-title">Scuba Diving</h3>
+                        <p class="skill-desc">Comfortable exploring underwater environments, with hands-on diving
+                            experience.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="experience" id="experience">
+            <div class="container">
+                <h2 class="section-title">Experience</h2>
+                <div class="skills-grid">
+                    <div class="skill-card">
+                        <span class="skill-badge">WEDDING ORGANIZER</span>
+                        <h3 class="skill-title">Wedding Coordination</h3>
+                        <p class="skill-desc">Assisted in coordinating several wedding events on a freelance basis,
+                            handling a mix of on-site coordination, vendor liaison, and event planning.</p>
+                    </div>
+                    <div class="skill-card">
+                        <span class="skill-badge">VOLUNTEER MENTOR</span>
+                        <h3 class="skill-title">Panti Asuhan Pondok Kasih Agape</h3>
+                        <p class="skill-desc">Volunteered as a mentor for children at Panti Asuhan Pondok Kasih Agape in
+                            North Jakarta, engaging them through interactive play and social activities.</p>
+                    </div>
+                    <div class="skill-card">
+                        <span class="skill-badge">PHYSICS COMPETITION TEAM</span>
+                        <h3 class="skill-title">Team Member & Captain</h3>
+                        <p class="skill-desc">Competed on a physics competition team for two years in high school,
+                            progressing from team member to team captain.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="education" id="education">
+            <div class="container">
+                <h2 class="section-title">Education</h2>
+                <div class="skills-grid">
+                    <div class="skill-card">
+                        <span class="skill-badge">2026 — Now</span>
+                        <h3 class="skill-title">Universitas Indonesia</h3>
+                        <p class="skill-desc">S1 Sistem Informasi, Fakultas Ilmu Komputer.</p>
+                    </div>
+                    <div class="skill-card">
+                        <span class="skill-badge">2022 — 2025</span>
+                        <h3 class="skill-title">SMA Islam Al Azhar</h3>
+                        <p class="skill-desc">Science.</p>
+                    </div>
+                    <div class="skill-card">
+                        <span class="skill-badge">2019 — 2022</span>
+                        <h3 class="skill-title">SMP Labschool Kebayoran</h3>
                     </div>
                 </div>
             </div>
