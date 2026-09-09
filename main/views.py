@@ -1,6 +1,5 @@
 from django.shortcuts import render
 
-from django.shortcuts import render
 from main.models import Experience
 
 def show_main(request):
@@ -9,7 +8,7 @@ def show_main(request):
         "npm": "2506657125",
         "study_program": "Sistem Informasi",
         "bio": (
-            "Don't stop believing."
+            "Mahasiswa Ilmu Komputer Universitas Indonesia yang tertarik pada pengembangan perangkat lunak dan pendidikan."
         ),
     }
     return render(request, "index.html", context)
