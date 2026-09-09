@@ -34,7 +34,7 @@ SECRET_KEY = 'django-insecure-1u%y@=1h7+6c$3rn)*zl7ic&i2akn7hq(6j3*qi3i%46s-y*bj
 DEBUG = True
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "nafisa-naila-myportofolio.pws.cs.ui.ac.id"]
-
+PRODUCTION = os.getenv('PRODUCTION', 'False').lower() == 'true'
 
 # Application definition
 
@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'main'
 ]
 
 MIDDLEWARE = [
@@ -142,7 +143,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-
+WHITENOISE_USE_FINDERS = True
 
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
