@@ -11,3 +11,7 @@ Kelas : PBP C
 
 Saya memakai Claude AI untuk membantu mengatur tata letak design dan membantu saya untuk memberikan pengertian tentang element section
 
+### Tugas 2
+1. Saat membuka halaman portofolio, diujung kanan atas ada pilihan navigation bar yang berisi profile, experience, dan certification yang masing masing pilihan bisa di klik untuk mengetahui detail lebih lanjut. Urls.py sendiri punya peran sebagai peta rute untuk menentukan URL yang akan diarahkan ke fungsi. Urls.py ada dua folder yaitu folder proyek dan folder main. Folder proyek adalah pintu masuk utama yang akan ngeforward semua permintaan user ke urls.py di folder aplikasi main. Di main/urls.py, tiap alamat akan dicocokkan dengan nama fungsi yang ada di views.py.
+2. Data lebih baik jika disimpan di model karena untuk mempermudah kalau ingin menambah atau mengganti data jadi tidak perlu edit file HTML satu per satu. Ini juga membuat kode lebih rapi karena tugasnya terpisah dan tertulis dengan jelas.
+3. Kalau makemigrations membuat file yang mencatat perubahan di model tetapi belum langsung diterapkan ke database, sedangkan migrate adalah langkah selanjutnya untuk menerapkan perubahan sehingga kolom thumbnail beneran ditambahin ke tabel yang diinginkan di database.
