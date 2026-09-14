@@ -313,7 +313,7 @@ h1,
     color: #194d74;
     font-size: 1.5rem;
     font-weight: 700;
-    text-transform: lowercase;
+    text-transform: uppercase;
 }
 
 .experience-card h2 {
@@ -333,4 +333,8 @@ h1,
     font-weight: 600;
     color: #1a1a1a;
 }
-.badge, .experience-category { font-family: 'Space Grotesk', sans-serif !important; }
+
+.badge,
+.experience-category {
+    font-family: 'Space Grotesk', sans-serif !important;
+}

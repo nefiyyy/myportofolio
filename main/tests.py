@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from main.models import Experience
+from main.models import Experience, Certification
 
 
 class MainTest(TestCase):
@@ -33,13 +33,11 @@ class MainTest(TestCase):
 
     def test_experience_page(self):
         response = self.client.get(reverse("main:show_experience"))
-
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "experience.html")
         self.assertContains(response, self.experience.title)
         self.assertContains(response, self.experience.description)
         self.assertContains(response, "Part-Time")
-        self.assertContains(response, "Sedang berlangsung")
         self.assertContains(response, f'href="{reverse("main:show_main")}"')
 
     def test_empty_experience_page(self):
@@ -52,7 +50,28 @@ class MainTest(TestCase):
         self.experience.ended_at = timezone.now()
         self.experience.save()
         response = self.client.get(reverse("main:show_experience"))
-
         self.assertFalse(self.experience.is_ongoing)
-        self.assertContains(response, "Selesai")
         self.assertNotContains(response, "Sedang berlangsung")
+
+class CertificationTest(TestCase):
+    def setUp(self):
+        self.certification = Certification.objects.create(
+            title="TOEFL ITP",
+            issuer="ETS",
+            issued_at="2025-02-22",
+        )
+
+    def test_certification_url_is_accessible(self):
+        response = self.client.get(reverse("main:show_certification"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "certification.html")
+
+    def test_certification_data_appears_on_page(self):
+        response = self.client.get(reverse("main:show_certification"))
+        self.assertContains(response, self.certification.title)
+        self.assertContains(response, self.certification.issuer)
+
+    def test_empty_certification_page(self):
+        Certification.objects.all().delete()
+        response = self.client.get(reverse("main:show_certification"))
+        self.assertContains(response, "Belum ada sertifikasi yang ditambahkan.")

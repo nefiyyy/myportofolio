@@ -1,0 +1,70 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certification - {{ name }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="{% url 'main:show_main' %}" class="brand">{{ name }}</a>
+            <nav>
+                <a href="{% url 'main:show_main' %}">Profile</a>
+                <a href="{% url 'main:show_experience' %}">Experience</a>
+                <a href="{% url 'main:show_certification' %}">Certification</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="experience-section" id="certification">
+            <div class="container">
+                <p class="section-kicker">Bukti kompetensi saya</p>
+                <h1>Certification</h1>
+                <div class="experience-grid">
+                    {% for certification in certification_list %}
+                    <a href="{% url 'main:show_certification_detail' certification.id %}"
+                        style="text-decoration: none; color: inherit;">
+                        <article class="experience-card">
+                            {% if certification.thumbnail %}
+                            <img src="{{ certification.thumbnail }}" alt="{{ certification.title }}"
+                                style="width: 100%; border-radius: 8px; margin-bottom: 0.75rem;">
+                            {% endif %}
+                            <span class="experience-category">{{ certification.issuer }}</span>
+                            <h2>{{ certification.title }}</h2>
+                            <p class="experience-description">
+                                Diterbitkan pada {{ certification.issued_at }}
+                            </p>
+                            {% if certification.credential_url %}
+                            <p class="experience-status">
+                                <a href="{{ certification.credential_url }}" target="_blank">Lihat Sertifikat</a>
+                            </p>
+                            {% endif %}
+                        </article>
+                    </a>
+                    {% empty %}
+                    <p class="empty-state">
+                        Belum ada sertifikasi yang ditambahkan.
+                    </p>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; 2026 {{ name }}. Fakultas Ilmu Komputer, Universitas Indonesia.</p>
+        </div>
+    </footer>
+</body>
+
+</html>
