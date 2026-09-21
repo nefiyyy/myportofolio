@@ -5,7 +5,11 @@ from main.views import (
     show_certification,
     show_certification_detail,
     create_experience,
+    create_certification,
+    edit_certification,
+    delete_certification,
     get_experience_json,
+    get_certification_json,
     delete_experience,
 )
 
@@ -16,7 +20,11 @@ urlpatterns = [
     path("experience/", show_experience, name="show_experience"),
     path("experience/add/", create_experience, name="create_experience"),
     path("certification/", show_certification, name="show_certification"),
+    path("certification/add/", create_certification, name="create_certification"),
     path("certification/<uuid:id>/", show_certification_detail, name="show_certification_detail"),
+    path("certification/<uuid:id>/edit/", edit_certification, name="edit_certification"),
+    path("certification/<uuid:id>/delete/", delete_certification, name="delete_certification"),
     path("api/experience/", get_experience_json, name="get_experience_json"),
+    path("api/certification/", get_certification_json, name="get_certification_json"),
     path("experience/<uuid:experience_id>/delete/", delete_experience, name="delete_experience"),
 ]

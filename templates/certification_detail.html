@@ -1,62 +1,31 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'base.html' %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ certification.title }} - {{ name }}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    <link rel="stylesheet" href="/static/css/style.css">
-</head>
-
-<body>
-    <header class="site-header">
+{% block content %}
+<main>
+    <section class="experience-section" id="certification-detail">
         <div class="container">
-            <a href="{% url 'main:show_main' %}" class="brand">{{ name }}</a>
-            <nav>
-                <a href="{% url 'main:show_main' %}">Profile</a>
-                <a href="{% url 'main:show_experience' %}">Experience</a>
-                <a href="{% url 'main:show_certification' %}">Certification</a>
-            </nav>
-        </div>
-    </header>
-
-    <main>
-        <section class="experience-section" id="certification-detail">
-            <div class="container">
-                <p class="section-kicker">Detail Sertifikasi</p>
-                <h1>{{ certification.title }}</h1>
-                <div class="experience-card" style="max-width: 500px;">
-                    {% if certification.thumbnail %}
-                    <img src="{{ certification.thumbnail }}" alt="{{ certification.title }}"
-                        style="width: 100%; border-radius: 8px; margin-bottom: 0.75rem;">
-                    {% endif %}
-                    <span class="experience-category">{{ certification.issuer }}</span>
-                    <h2>{{ certification.title }}</h2>
-                    <p class="experience-description">
-                        Diterbitkan pada {{ certification.issued_at }}
-                    </p>
-                    {% if certification.credential_url %}
-                    <p class="experience-status">
-                        <a href="{{ certification.credential_url }}" target="_blank">Lihat Sertifikat</a>
-                    </p>
-                    {% endif %}
-                </div>
-                <p style="margin-top: 1.5rem;">
-                    <a href="{% url 'main:show_certification' %}">&larr; Kembali ke daftar Certification</a>
+            <p class="section-kicker">Detail Sertifikasi</p>
+            <h1>{{ certification.title }}</h1>
+            <div class="experience-card" style="max-width: 500px;">
+                {% if certification.thumbnail %}
+                <img src="{{ certification.thumbnail }}" alt="{{ certification.title }}"
+                    style="width: 100%; border-radius: 8px; margin-bottom: 0.75rem;">
+                {% endif %}
+                <span class="experience-category">{{ certification.issuer }}</span>
+                <h2>{{ certification.title }}</h2>
+                <p class="experience-description">
+                    Diterbitkan pada {{ certification.issued_at }}
                 </p>
+                {% if certification.credential_url %}
+                <p class="experience-status">
+                    <a href="{{ certification.credential_url }}" target="_blank">Lihat Sertifikat</a>
+                </p>
+                {% endif %}
             </div>
-        </section>
-    </main>
-
-    <footer class="site-footer">
-        <div class="container">
-            <p>&copy; 2026 {{ name }}. Fakultas Ilmu Komputer, Universitas Indonesia.</p>
+            <p style="margin-top: 1.5rem;">
+                <a href="{% url 'main:show_certification' %}">&larr; Kembali ke daftar Certification</a>
+            </p>
         </div>
-    </footer>
-</body>
-
-</html>
+    </section>
+</main>
+{% endblock content %}
