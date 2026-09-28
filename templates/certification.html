@@ -6,7 +6,10 @@
         <div class="container">
             <p class="section-kicker">Bukti kompetensi saya</p>
             <h1>Certification</h1>
+
+            {% if user.is_superuser %}
             <p><a href="{% url 'main:create_certification' %}">+ Tambah Sertifikasi</a></p>
+            {% endif %}
 
             <div class="experience-grid">
                 {% for certification in certification_list %}
@@ -29,12 +32,19 @@
                     </p>
                     {% endif %}
 
+                    {% include "components/certification_star.html" with certification=certification %}
+
+                    {% if user.is_superuser or is_editor %}
                     <a href="{% url 'main:edit_certification' certification.id %}">Edit</a>
+                    {% endif %}
+
+                    {% if user.is_superuser %}
                     <form method="POST" action="{% url 'main:delete_certification' certification.id %}"
                         style="display: inline;" onsubmit="return confirm('Hapus sertifikasi ini?');">
                         {% csrf_token %}
                         <button type="submit">Hapus</button>
                     </form>
+                    {% endif %}
                 </article>
                 {% empty %}
                 <p class="empty-state">
