@@ -338,3 +338,25 @@ h1,
 .experience-category {
     font-family: 'Space Grotesk', sans-serif !important;
 }
+
+.star-form {
+    display: inline;
+}
+
+.button-star {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: #0c1e2e;
+    color: #ffffff;
+    padding: 0.4rem 0.8rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 0.75rem;
+    font-weight: 600;
+}
+
+.button-star.is-starred {
+    background: #194d74;
+}

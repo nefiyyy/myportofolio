@@ -19,10 +19,15 @@
                     {% if not experience.is_ongoing %}
                     <p class="experience-status">Selesai</p>
                     {% endif %}
+
+                    {% include "components/experience_star.html" with experience=experience %}
+
+                    {% if user.is_superuser %}
                     <form method="post" action="{% url 'main:delete_experience' experience.id %}">
                         {% csrf_token %}
                         <button type="submit" class="button button-danger">Hapus</button>
                     </form>
+                    {% endif %}
                 </article>
                 {% empty %}
                 <p class="empty-state">
