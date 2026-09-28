@@ -20,3 +20,16 @@ Saya memakai Claude AI untuk membantu mengatur tata letak design dan membantu sa
 1. Penggunaan ModelForm memudahkan saya agar tidak perlu menulis setiap field di HTML karena form tersebut sudah otomatis dari model. Isi dalam ModelForm juga sudah dicek secara otomatis dan {% csrf_token %} wajib ada supaya form hanya bisa dikirim dari website sendiri, bukan dari website lain. Jika tokennya tidak ada, Django akan menolak request (error 403).
 2.  Format data JSON lebih singkat dan lebih mudah dibaca daripada XML, karena XML harus memakai tag pembuka dan penutup. JSON juga mirip objek di JavaScript, jadi akan memudahkan jika dipakai di browser.
 3.  Saat URL dibuka, view akan mengambil data Certification dari database dan mengubahnya menjadi JSON. Serialization diperlukan karena data dari database berbentuk objek Python, sedangkan yang bisa dikirim lewat HTTP berupa teks.
+
+### Tugas 4
+Yang diimplementasikan :
+- Register, login, logout dengan sistem auth bawaan Django
+- Cookie last_login di-set saat login dan dihapus saat logout
+- 4 peran di bagian Certification:
+  - Pengunjung: hanya bisa melihat, diarahkan ke login untuk aksi lain
+  - User biasa: bisa memberi/membatalkan star
+  - Editor (Django Group "Editor", diatur via Django Admin): bisa star dan edit
+  - Superuser: bisa tambah, edit, hapus, dan star
+- Pengecekan hak akses di server (@login_required + PermissionDenied → 403) dan tombol yang disembunyikan di template
+- Fitur star pakai ManyToManyField ke User di model Experience dan Certification
+- Endpoint JSON memakai use_natural_foreign_keys=True agar yang tampil username, bukan id database
