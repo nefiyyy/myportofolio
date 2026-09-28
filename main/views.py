@@ -185,3 +185,13 @@ def toggle_star(request, experience_id):
         else:
             experience.starred_by.add(request.user)
     return redirect("main:show_experience")
+
+@login_required(login_url="/login/")
+def toggle_certification_star(request, id):
+    certification = get_object_or_404(Certification, pk=id)
+    if request.method == "POST":
+        if request.user in certification.starred_by.all():
+            certification.starred_by.remove(request.user)
+        else:
+            certification.starred_by.add(request.user)
+    return redirect("main:show_certification")

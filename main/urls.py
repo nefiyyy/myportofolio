@@ -15,6 +15,7 @@ from main.views import (
     login_user,
     logout_user,
     toggle_star,
+    toggle_certification_star,
 )
 
 app_name = "main"
