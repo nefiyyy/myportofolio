@@ -15,7 +15,7 @@
 }
 
 body {
-    font-family: apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     color: var(--ink);
     background-color: var(--paper);
     line-height: 1.6;
@@ -216,7 +216,6 @@ h1,
     color: #333;
 }
 
-/* opsional: kasih warna aksen biar konsisten sama tema hero kamu */
 .skill-tag:hover {
     background: #e0e0e0;
 }
@@ -339,6 +338,7 @@ h1,
     font-family: 'Space Grotesk', sans-serif !important;
 }
 
+/* star */
 .star-form {
     display: inline;
 }
@@ -359,6 +359,13 @@ h1,
 
 .button-star.is-starred {
     background: #194d74;
+}
+
+.star-count {
+    padding: 0.05rem 0.4rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.25);
+    font-size: 0.8rem;
 }
 
 /* toast */
@@ -419,4 +426,162 @@ h1,
 
 .hide {
     display: none !important;
+}
+
+/* header & search experience */
+.experience-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.experience-search {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.experience-search__input {
+    flex: 1;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: #ffffff;
+    color: #1a1a1a;
+}
+
+.experience-search .button,
+.button-add,
+.experience-form-modal__actions .button {
+    padding: 0.6rem 1rem;
+    border: none;
+    border-radius: var(--radius);
+    background: #194d74;
+    color: #ffffff;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.experience-form-modal__actions .button-secondary {
+    background: transparent;
+    border: 1px solid var(--line);
+}
+
+.experience-thumbnail {
+    width: 100%;
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+}
+
+.experience-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* modal tambah experience */
+.experience-form-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 1rem;
+    border: 0;
+    background: transparent;
+    z-index: 10;
+    align-items: center;
+    justify-content: center;
+}
+
+.experience-form-modal:popover-open {
+    display: flex;
+}
+
+.experience-form-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    padding: 0;
+    background: rgba(0, 0, 0, 0.6);
+    cursor: default;
+}
+
+.experience-form-modal__content {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 640px);
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+    padding: 1.5rem;
+    background: var(--paper);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+}
+
+.experience-form-modal__content h2 {
+    margin: 0 2.5rem 1.25rem 0;
+    font-family: "Space Grotesk", -apple-system, sans-serif;
+    font-size: 1.5rem;
+}
+
+.experience-form-modal__close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    border: 0;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 1.8rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.experience-form-modal__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-bottom: 1rem;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    padding: 0.5rem 0.7rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: #ffffff;
+    color: #1a1a1a;
+    font: inherit;
+}
+
+.form-error {
+    color: #f87171;
+    font-size: 0.85rem;
+}
+
+.button-danger {
+    padding: 0.4rem 0.8rem;
+    margin-top: 0.75rem;
+    border: none;
+    border-radius: var(--radius);
+    background: #b42318;
+    color: #ffffff;
+    font-weight: 600;
+    cursor: pointer;
 }

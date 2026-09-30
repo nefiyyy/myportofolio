@@ -5,8 +5,9 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.decorators import login_required
 from django.core import serializers
 from django.core.exceptions import PermissionDenied
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render, get_object_or_404
+from django.views.decorators.http import require_POST
 from main.models import Experience, Certification
 from main.forms import ExperienceForm, CertificationForm
 
@@ -28,19 +29,13 @@ def show_main(request):
     return render(request, "index.html", context)
 
 
+# Halaman Experience: data diambil lewat AJAX, view cuma kirim kerangka + form kosong
 def show_experience(request):
-    json_response = get_experience_json(request)
-    experiences = serializers.deserialize(
-        "json",
-        json_response.content.decode("utf-8"),
-    )
-    experiences = [exp.object for exp in experiences]
-
     title_query = request.GET.get("title", "").strip()
     context = {
         "name": "Nafisa Naila Andian",
-        "experience_list": experiences,
         "title_query": title_query,
+        "form": ExperienceForm(),
     }
     return render(request, "experience.html", context)
 
@@ -89,6 +84,26 @@ def create_experience(request):
         "form": form,
     }
     return render(request, "experience_form.html", context)
+
+
+@require_POST
+def create_experience_ajax(request):
+    # Tanpa @login_required agar fetch menerima JSON 403, bukan redirect ke halaman login
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {"message": "Hanya pemilik portofolio yang dapat menambahkan experience."},
+            status=403,
+        )
+
+    form = ExperienceForm(request.POST)
+    if form.is_valid():
+        experience = form.save()
+        return JsonResponse(
+            {"message": "Experience berhasil ditambahkan.", "pk": str(experience.id)},
+            status=201,
+        )
+
+    return JsonResponse({"errors": form.errors.get_json_data()}, status=400)
 
 
 @login_required(login_url="/login/")
@@ -156,18 +171,37 @@ def delete_certification(request, id):
     return redirect("main:show_certification")
 
 
-# API JSON: publik, relasi user tampil sebagai username (bukan id database)
+# API JSON Experience: dirakit manual agar bisa menyertakan status star user yang login
 def get_experience_json(request):
     title_query = request.GET.get("title", "").strip()
-    experiences = Experience.objects.all()
+    experiences = Experience.objects.prefetch_related("starred_by").all()
 
     if title_query:
         experiences = experiences.filter(title__icontains=title_query)
 
-    experiences_json = serializers.serialize("json", experiences, use_natural_foreign_keys=True)
-    return HttpResponse(experiences_json, content_type="application/json")
+    data = []
+    for experience in experiences:
+        starred_users = experience.starred_by.all()
+        is_starred = request.user in starred_users if request.user.is_authenticated else False
+
+        data.append({
+            "pk": str(experience.id),
+            "fields": {
+                "title": experience.title,
+                "description": experience.description,
+                "category": experience.get_category_display(),
+                "thumbnail": experience.thumbnail or "",
+                "is_ongoing": experience.is_ongoing,
+                "star_count": starred_users.count(),
+                "is_starred": is_starred,
+                "starred_by_names": ", ".join(u.username for u in starred_users),
+            },
+        })
+
+    return JsonResponse(data, safe=False)
 
 
+# API JSON Certification: relasi user tampil sebagai username (bukan id database)
 def get_certification_json(request):
     certifications = Certification.objects.all()
     certifications_json = serializers.serialize("json", certifications, use_natural_foreign_keys=True)
