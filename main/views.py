@@ -3,9 +3,8 @@ from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.decorators import login_required
-from django.core import serializers
 from django.core.exceptions import PermissionDenied
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import redirect, render, get_object_or_404
 from django.views.decorators.http import require_POST
 from main.models import Experience, Certification
@@ -40,17 +39,11 @@ def show_experience(request):
     return render(request, "experience.html", context)
 
 
+# Halaman Certification: data diambil lewat AJAX, view cuma kirim kerangka + form modal
 def show_certification(request):
-    json_response = get_certification_json(request)
-    certifications = serializers.deserialize(
-        "json",
-        json_response.content.decode("utf-8"),
-    )
-    certifications = [cert.object for cert in certifications]
-
     context = {
         "name": "Nafisa Naila Andian",
-        "certification_list": certifications,
+        "form": CertificationForm(),
         "is_editor": is_editor(request.user),
     }
     return render(request, "certification.html", context)
@@ -123,6 +116,32 @@ def create_certification(request):
         "form": form,
     }
     return render(request, "certification_form.html", context)
+
+
+@require_POST
+def create_certification_ajax(request):
+    """Tambah Certification lewat AJAX. Hak akses dicek di server, bukan cuma di template."""
+    # Tanpa @login_required agar fetch menerima JSON 403, bukan redirect ke halaman login
+    if not request.user.is_authenticated:
+        return JsonResponse({"message": "Silakan login terlebih dahulu."}, status=403)
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {"message": "Hanya pemilik portofolio yang dapat menambahkan sertifikasi."},
+            status=403,
+        )
+
+    form = CertificationForm(request.POST)
+    if form.is_valid():
+        certification = form.save()
+        return JsonResponse(
+            {"message": "Sertifikasi berhasil ditambahkan.", "id": str(certification.id)},
+            status=201,
+        )
+
+    return JsonResponse(
+        {"message": "Data tidak valid.", "errors": form.errors.get_json_data()},
+        status=400,
+    )
 
 
 # Edit: superuser ATAU editor
@@ -201,11 +220,31 @@ def get_experience_json(request):
     return JsonResponse(data, safe=False)
 
 
-# API JSON Certification: relasi user tampil sebagai username (bukan id database)
+# API JSON Certification: dirakit manual, bisa difilter lewat ?title=,
+# menyertakan jumlah star, daftar username, dan status star user yang login
 def get_certification_json(request):
-    certifications = Certification.objects.all()
-    certifications_json = serializers.serialize("json", certifications, use_natural_foreign_keys=True)
-    return HttpResponse(certifications_json, content_type="application/json")
+    title_query = request.GET.get("title", "").strip()
+    certifications = Certification.objects.prefetch_related("starred_by").order_by("-issued_at")
+
+    if title_query:
+        certifications = certifications.filter(title__icontains=title_query)
+
+    data = []
+    for certification in certifications:
+        starred_users = list(certification.starred_by.all())
+        data.append({
+            "id": str(certification.id),
+            "title": certification.title,
+            "issuer": certification.issuer,
+            "issued_at": certification.issued_at.isoformat() if certification.issued_at else None,
+            "credential_url": certification.credential_url or "",
+            "thumbnail": certification.thumbnail or "",
+            "star_count": len(starred_users),
+            "starred_by": [user.username for user in starred_users],
+            "is_starred": request.user.is_authenticated and request.user in starred_users,
+        })
+
+    return JsonResponse({"certifications": data})
 
 
 # Autentikasi
