@@ -60,3 +60,29 @@ class CertificationForm(ModelForm):
     class Meta:
         model = Certification
         fields = ["title", "issuer", "issued_at", "credential_url", "thumbnail"]
+        labels = {
+            "title": "Nama Sertifikasi",
+            "issuer": "Penerbit",
+            "issued_at": "Tanggal Terbit",
+            "credential_url": "URL Sertifikat",
+            "thumbnail": "URL Gambar",
+        }
+        widgets = {
+            "title": TextInput(attrs={"placeholder": "TOEFL ITP", "maxlength": 255}),
+            "issuer": TextInput(attrs={"placeholder": "ETS", "maxlength": 255}),
+            "issued_at": DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+            "credential_url": URLInput(attrs={"placeholder": "https://..."}),
+            "thumbnail": URLInput(attrs={"placeholder": "https://drive.google.com/thumbnail?id=...&sz=w1000"}),
+        }
+
+    def clean_title(self):
+        title = strip_tags(self.cleaned_data["title"]).strip()
+        if not title:
+            raise ValidationError("Judul sertifikasi tidak boleh hanya berisi tag HTML.")
+        return title
+
+    def clean_issuer(self):
+        issuer = strip_tags(self.cleaned_data["issuer"]).strip()
+        if not issuer:
+            raise ValidationError("Penerbit tidak boleh hanya berisi tag HTML.")
+        return issuer
