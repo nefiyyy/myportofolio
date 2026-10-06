@@ -21,15 +21,7 @@ Saya memakai Claude AI untuk membantu mengatur tata letak design dan membantu sa
 2.  Format data JSON lebih singkat dan lebih mudah dibaca daripada XML, karena XML harus memakai tag pembuka dan penutup. JSON juga mirip objek di JavaScript, jadi akan memudahkan jika dipakai di browser.
 3.  Saat URL dibuka, view akan mengambil data Certification dari database dan mengubahnya menjadi JSON. Serialization diperlukan karena data dari database berbentuk objek Python, sedangkan yang bisa dikirim lewat HTTP berupa teks.
 
-### Tugas 4
-Yang diimplementasikan :
-- Register, login, logout dengan sistem auth bawaan Django
-- Cookie last_login di-set saat login dan dihapus saat logout
-- 4 peran di bagian Certification:
-  - Pengunjung: hanya bisa melihat, diarahkan ke login untuk aksi lain
-  - User biasa: bisa memberi/membatalkan star
-  - Editor (Django Group "Editor", diatur via Django Admin): bisa star dan edit
-  - Superuser: bisa tambah, edit, hapus, dan star
-- Pengecekan hak akses di server (@login_required + PermissionDenied → 403) dan tombol yang disembunyikan di template
-- Fitur star pakai ManyToManyField ke User di model Experience dan Certification
-- Endpoint JSON memakai use_natural_foreign_keys=True agar yang tampil username, bukan id database
+### Tugas 5
+1. Debouncing adalah teknik menunda eksekusi fungsi sampai pengguna berhenti melakukan aksi selama jeda tertentu. Teknik ini penting digunakan dalam fitur search karena setiap ketikan me-reset timer, jadi request baru dikirim setelah pengguna berhenti mengetik. Tanpa debouncing, mengetik "python" bisa mengirim 6 request sekaligus. Hal ini membebani server, dan respons yang datang tidak berurutan bisa bikin hasil lama menimpa hasil terbaru. 
+2. fetch() tidak langsung memberi data melainkan memberi Promise, yaitu saat datanya datang nanti. Sedangkan await membuat kode menunggu sampai datanya datang lalu lanjut ke baris berikutnya. Jika tidak menggunakan await, kode akan jalan duluan sebelum datanya siap dan akan muncul tulisan error atau undefined.
+3. Serangan XSS adalah serangan di mana user menyelipkan kode ke dalam data dan saat data itu ditampilkan ke user lain, kodenya ikut dijalankan ke browser user lain tersebut. Hal ini rentan dipakai untuk mencuri sesi login. Sedangkan dari template dari django sudah otomatis mengamankan teks yang ditampilkan ke browser.
