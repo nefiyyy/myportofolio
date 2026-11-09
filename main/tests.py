@@ -35,16 +35,19 @@ class MainTest(TestCase):
         response = self.client.get(reverse("main:show_experience"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "experience.html")
-        self.assertContains(response, self.experience.title)
-        self.assertContains(response, self.experience.description)
-        self.assertContains(response, "Part-Time")
+        self.assertContains(response, reverse("api:experience-list"))
         self.assertContains(response, f'href="{reverse("main:show_main")}"')
+
+        api_response = self.client.get(reverse("api:experience-list"))
+        self.assertEqual(api_response.data[0]["title"], self.experience.title)
+        self.assertEqual(api_response.data[0]["category_display"], "Part-Time")
 
     def test_empty_experience_page(self):
         Experience.objects.all().delete()
         response = self.client.get(reverse("main:show_experience"))
 
-        self.assertContains(response, "Belum ada pengalaman yang ditambahkan.")
+        self.assertContains(response, "Belum ada experience yang ditambahkan atau ditemukan.")
+        self.assertEqual(self.client.get(reverse("api:experience-list")).data, [])
 
     def test_completed_experience(self):
         self.experience.ended_at = timezone.now()
@@ -52,6 +55,7 @@ class MainTest(TestCase):
         response = self.client.get(reverse("main:show_experience"))
         self.assertFalse(self.experience.is_ongoing)
         self.assertNotContains(response, "Sedang berlangsung")
+        
 
 class CertificationTest(TestCase):
     def setUp(self):
@@ -66,12 +70,17 @@ class CertificationTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "certification.html")
 
-    def test_certification_data_appears_on_page(self):
+    def test_certification_page_uses_api(self):
         response = self.client.get(reverse("main:show_certification"))
-        self.assertContains(response, self.certification.title)
-        self.assertContains(response, self.certification.issuer)
+        self.assertContains(response, reverse("api:certification-list"))
+        self.assertIn("csrftoken", response.cookies)
+
+        api_response = self.client.get(reverse("api:certification-list"))
+        self.assertEqual(api_response.data[0]["title"], self.certification.title)
+        self.assertEqual(api_response.data[0]["issuer"], self.certification.issuer)
 
     def test_empty_certification_page(self):
         Certification.objects.all().delete()
         response = self.client.get(reverse("main:show_certification"))
-        self.assertContains(response, "Belum ada sertifikasi yang ditambahkan.")
+        self.assertContains(response, "Belum ada certification yang ditambahkan atau ditemukan.")
+        self.assertEqual(self.client.get(reverse("api:certification-list")).data, [])
