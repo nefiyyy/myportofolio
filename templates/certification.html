@@ -39,26 +39,30 @@
 {% if user.is_superuser %}
 {% include "components/certification_form_modal.html" %}
 {% endif %}
+{% if user.is_superuser or is_editor %}
+{% include "components/certification_edit_modal.html" %}
+{% endif %}
 
 <script src="{% static 'js/utils.js' %}"></script>
 <script>
-    // ===== Konfigurasi dari Django =====
-    const CERT_JSON_URL = "{% url 'main:get_certification_json' %}";
-    const CREATE_CERT_URL = "{% url 'main:create_certification_ajax' %}";
-    const IS_SUPERUSER = {% if user.is_superuser %}true{% else %} false{% endif %};
-    const CAN_EDIT = {% if user.is_superuser or is_editor %}true{% else %} false{% endif %};
+    // ===== Konfigurasi: endpoint API DRF untuk Certification =====
+    const LIST_ENDPOINT = "{% url 'api:certification-list' %}";
+    const DETAIL_ENDPOINT = "{% url 'api:certification-detail' '00000000-0000-0000-0000-000000000000' %}";
+    const STAR_ENDPOINT = "{% url 'api:certification-star' '00000000-0000-0000-0000-000000000000' %}";
+    const DETAIL_PAGE_URL = "{% url 'main:show_certification_detail' '00000000-0000-0000-0000-000000000000' %}";
+    const LOGIN_URL = "{% url 'main:login' %}";
     const DUMMY_ID = "00000000-0000-0000-0000-000000000000";
-    const URLS = {
-        detail: "{% url 'main:show_certification_detail' '00000000-0000-0000-0000-000000000000' %}",
-        edit: "{% url 'main:edit_certification' '00000000-0000-0000-0000-000000000000' %}",
-        remove: "{% url 'main:delete_certification' '00000000-0000-0000-0000-000000000000' %}",
-        star: "{% url 'main:toggle_certification_star' '00000000-0000-0000-0000-000000000000' %}",
-    };
-    const CSRF_INPUT = `{% csrf_token %}`;
+    // Flag ini cuma buat nampilin/nyembunyiin tombol. Hak akses aslinya
+    // tetap dicek di server oleh permission class.
+    const IS_AUTHENTICATED = "{{ user.is_authenticated|yesno:'true,false' }}" === "true";
+    const IS_SUPERUSER = "{{ user.is_superuser|yesno:'true,false' }}" === "true";
+    const CAN_EDIT = "{% if user.is_superuser or is_editor %}true{% else %}false{% endif %}" === "true";
     const SEARCH_DEBOUNCE_DELAY = 400;
+    const OPTIONAL_FIELDS = ["credential_url", "thumbnail"];
 
     let abortController;
     let debounceTimer;
+    let certificationsById = new Map();
 
     // ===== Elemen DOM =====
     const loadingState = document.getElementById("loading");
@@ -67,10 +71,12 @@
     const grid = document.getElementById("grid");
     const searchForm = document.getElementById("certification-search-form");
     const searchInput = document.getElementById("search-input");
-    const certForm = document.getElementById("certification-form"); // null kalau bukan superuser
-    const modal = document.getElementById("add-certification-modal");
+    const addForm = document.getElementById("certification-form");        // null kalau bukan superuser
+    const addModal = document.getElementById("add-certification-modal");
+    const editForm = document.getElementById("edit-certification-form");   // null kalau bukan Editor/superuser
+    const editModal = document.getElementById("edit-certification-modal");
 
-    const urlFor = (template, id) => template.replace(DUMMY_ID, id);
+    const endpointFor = (pattern, id) => pattern.replace(DUMMY_ID, id);
 
     function showSection({ loading = false, error = false, empty = false, list = false }) {
         loadingState.classList.toggle("hide", !loading);
@@ -84,10 +90,11 @@
         return new Date(isoDate).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
     }
 
-    // ===== Render satu card (semua teks di-escape) =====
+    // ===== Render satu card (semua teks dari API di-escape) =====
     function buildCard(cert) {
         const article = document.createElement("article");
         article.className = "experience-card";
+        const id = escapeHtml(cert.id);
 
         const thumbnailHtml = cert.thumbnail
             ? `<img src="${escapeHtml(safeUrl(cert.thumbnail))}" alt="${escapeHtml(cert.title)}" class="experience-thumbnail">`
@@ -98,37 +105,38 @@
             : "";
 
         const starTitle = cert.star_count > 0
-            ? `Dibintangi oleh ${cert.starred_by.join(", ")}`
+            ? `Dibintangi oleh ${escapeHtml(cert.starred_by_names)}`
             : "Jadilah yang pertama memberi star";
 
+        const starHtml = IS_AUTHENTICATED
+            ? `<button type="button" data-action="star" data-id="${id}"
+                   class="button button-star${cert.is_starred ? " is-starred" : ""}" title="${starTitle}">
+                   <span aria-hidden="true">★</span>
+                   ${cert.is_starred ? "Unstar" : "Star"}
+                   <span class="star-count">${Number(cert.star_count)}</span>
+               </button>`
+            : `<a href="${LOGIN_URL}" class="button button-star" title="${starTitle}">
+                   <span aria-hidden="true">★</span>
+                   Login untuk star
+                   <span class="star-count">${Number(cert.star_count)}</span>
+               </a>`;
+
         const editHtml = CAN_EDIT
-            ? `<a href="${urlFor(URLS.edit, cert.id)}" class="button button-secondary">Edit</a>`
+            ? `<button type="button" data-action="edit" data-id="${id}" class="button button-secondary">Edit</button>`
             : "";
 
         const deleteHtml = IS_SUPERUSER
-            ? `<form method="post" action="${urlFor(URLS.remove, cert.id)}" style="display:inline;">
-                   ${CSRF_INPUT}
-                   <button type="submit" class="button button-danger"
-                       onclick="return confirm('Yakin ingin menghapus certification ini?');">Hapus</button>
-               </form>`
+            ? `<button type="button" data-action="delete" data-id="${id}" class="button button-danger">Hapus</button>`
             : "";
 
         article.innerHTML = `
             ${thumbnailHtml}
-            <h2><a href="${urlFor(URLS.detail, cert.id)}">${escapeHtml(cert.title)}</a></h2>
+            <h2><a href="${endpointFor(DETAIL_PAGE_URL, id)}">${escapeHtml(cert.title)}</a></h2>
             <p class="experience-description">${escapeHtml(cert.issuer)}</p>
             <p class="experience-status">Terbit: ${escapeHtml(formatDate(cert.issued_at))}</p>
             ${credentialHtml}
             <div class="experience-actions">
-                <form method="post" action="${urlFor(URLS.star, cert.id)}" class="star-form">
-                    ${CSRF_INPUT}
-                    <button type="submit" class="button button-star${cert.is_starred ? " is-starred" : ""}"
-                            title="${escapeHtml(starTitle)}">
-                        <span aria-hidden="true">★</span>
-                        ${cert.is_starred ? "Unstar" : "Star"}
-                        <span class="star-count">${Number(cert.star_count)}</span>
-                    </button>
-                </form>
+                ${starHtml}
                 ${editHtml}
                 ${deleteHtml}
             </div>
@@ -136,88 +144,172 @@
         return article;
     }
 
-    // ===== Ambil data lewat fetch() =====
+    // ===== GET daftar (dan pencarian lewat ?title=) dari API =====
     async function fetchCertifications(query = "") {
-        if (abortController) abortController.abort(); // batalkan request lama
+        if (abortController) abortController.abort();
         abortController = new AbortController();
 
         showSection({ loading: true });
         try {
-            const url = query ? `${CERT_JSON_URL}?title=${encodeURIComponent(query)}` : CERT_JSON_URL;
-            const response = await fetch(url, { signal: abortController.signal });
+            const url = new URL(LIST_ENDPOINT, window.location.origin);
+            if (query) url.searchParams.set("title", query);
+
+            const response = await fetch(url, {
+                headers: { Accept: "application/json" },
+                signal: abortController.signal,
+            });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-            const data = await response.json();
-            grid.replaceChildren();
-
-            if (data.certifications.length === 0) {
-                showSection({ empty: true });
-                return;
-            }
-            data.certifications.forEach((cert) => grid.appendChild(buildCard(cert)));
-            showSection({ list: true });
+            const certifications = await response.json();
+            certificationsById = new Map(certifications.map((cert) => [cert.id, cert]));
+            grid.replaceChildren(...certifications.map(buildCard));
+            showSection({ list: certifications.length > 0, empty: certifications.length === 0 });
         } catch (err) {
-            if (err.name === "AbortError") return; // diganti request baru, bukan error
+            if (err.name === "AbortError") return;
             console.error(err);
             showSection({ error: true });
         }
     }
 
-    // ===== Search + debouncing =====
-    searchInput.addEventListener("input", () => {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => fetchCertifications(searchInput.value.trim()), SEARCH_DEBOUNCE_DELAY);
-    });
-
-    searchForm.addEventListener("submit", (e) => {
-        e.preventDefault();
-        clearTimeout(debounceTimer);
-        fetchCertifications(searchInput.value.trim());
-    });
-
-    document.getElementById("retry-button").addEventListener("click", () => {
-        fetchCertifications(searchInput.value.trim());
-    });
-
-    // ===== Gabung pesan error validasi dari server =====
-    function formatErrors(data) {
-        if (!data.errors) return data.message || "Terjadi kesalahan.";
-        return Object.entries(data.errors)
-            .map(([field, list]) => `${field}: ${list.map((e) => e.message).join(", ")}`)
-            .join(" | ");
+    // ===== Pesan error dari DRF: {"title": ["..."]} (400) atau {"detail": "..."} (403/404) =====
+    function apiErrorMessage(data, status) {
+        const messages = Object.entries(data).flatMap(([field, value]) => {
+            const list = Array.isArray(value) ? value : [value];
+            return list
+                .filter((msg) => typeof msg === "string")
+                .map((msg) => (field === "detail" || field === "non_field_errors" ? msg : `${field}: ${msg}`));
+        });
+        return messages.join(" | ") || `Terjadi kesalahan (status ${status}).`;
     }
 
-    // ===== Tambah data via modal (cuma ada buat superuser) =====
-    if (certForm) {
-        certForm.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const submitButton = certForm.querySelector('button[type="submit"]');
+    // ===== Satu tempat buat POST/PATCH/DELETE: JSON + header X-CSRFToken =====
+    async function sendToApi(url, method, payload) {
+        const response = await fetch(url, {
+            method,
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCookie("csrftoken"),
+            },
+            body: payload === undefined ? undefined : JSON.stringify(payload),
+        });
+        if (response.status === 204) return null;
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(apiErrorMessage(data, response.status));
+        return data;
+    }
+
+    // Form -> JSON. Prefix "edit-" dibuang, token CSRF nggak ikut, field opsional kosong jadi null.
+    function formToPayload(form, prefix = "") {
+        const payload = {};
+        for (const [rawName, value] of new FormData(form).entries()) {
+            if (rawName === "csrfmiddlewaretoken" || rawName === "id") continue;
+            const name = rawName.startsWith(prefix) ? rawName.slice(prefix.length) : rawName;
+            payload[name] = value === "" && OPTIONAL_FIELDS.includes(name) ? null : value;
+        }
+        return payload;
+    }
+
+    function currentQuery() {
+        return searchInput.value.trim();
+    }
+
+    // ===== Tambah (POST), cuma ada buat pemilik =====
+    if (addForm) {
+        addForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const submitButton = addForm.querySelector('button[type="submit"]');
             submitButton.disabled = true;
-
             try {
-                const response = await fetch(CREATE_CERT_URL, {
-                    method: "POST",
-                    headers: { "X-CSRFToken": getCookie("csrftoken") },
-                    body: new FormData(certForm),
-                });
-                const data = await response.json();
-
-                if (response.status === 201) {
-                    showToast("Berhasil", data.message, "success");
-                    certForm.reset();
-                    if (modal) modal.hidePopover();
-                    fetchCertifications(searchInput.value.trim());
-                } else {
-                    showToast("Gagal menambahkan", formatErrors(data), "error", 5000);
-                }
+                await sendToApi(LIST_ENDPOINT, "POST", formToPayload(addForm));
+                addForm.reset();
+                addModal.hidePopover();
+                showToast("Berhasil", "Certification baru berhasil ditambahkan!", "success");
+                await fetchCertifications(currentQuery());
             } catch (err) {
-                console.error(err);
-                showToast("Gagal", "Tidak bisa terhubung ke server.", "error");
+                showToast("Gagal menambahkan", err.message, "error", 5000);
             } finally {
                 submitButton.disabled = false;
             }
         });
     }
+
+    // ===== Edit (PATCH), buat Editor & pemilik =====
+    function openEditModal(id) {
+        const cert = certificationsById.get(id);
+        if (!cert || !editForm) return;
+        editForm.elements.id.value = cert.id;
+        editForm.elements["edit-title"].value = cert.title;
+        editForm.elements["edit-issuer"].value = cert.issuer;
+        editForm.elements["edit-issued_at"].value = cert.issued_at || "";
+        editForm.elements["edit-credential_url"].value = cert.credential_url || "";
+        editForm.elements["edit-thumbnail"].value = cert.thumbnail || "";
+        editModal.showPopover();
+    }
+
+    if (editForm) {
+        editForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const submitButton = editForm.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            try {
+                const id = editForm.elements.id.value;
+                await sendToApi(endpointFor(DETAIL_ENDPOINT, id), "PATCH", formToPayload(editForm, "edit-"));
+                editModal.hidePopover();
+                showToast("Berhasil", "Certification berhasil diubah!", "success");
+                await fetchCertifications(currentQuery());
+            } catch (err) {
+                showToast("Gagal mengubah", err.message, "error", 5000);
+            } finally {
+                submitButton.disabled = false;
+            }
+        });
+    }
+
+    // ===== Star / Edit / Hapus lewat event delegation =====
+    grid.addEventListener("click", async (event) => {
+        const button = event.target.closest("button[data-action]");
+        if (!button || button.disabled) return;
+        const { action, id } = button.dataset;
+
+        if (action === "edit") {
+            openEditModal(id);
+            return;
+        }
+        if (action === "delete" && !window.confirm("Yakin ingin menghapus certification ini?")) return;
+
+        button.disabled = true;
+        try {
+            if (action === "star") {
+                await sendToApi(endpointFor(STAR_ENDPOINT, id), "POST");
+                showToast("Berhasil", "Star diperbarui.", "success");
+            } else if (action === "delete") {
+                await sendToApi(endpointFor(DETAIL_ENDPOINT, id), "DELETE");
+                showToast("Berhasil", "Certification berhasil dihapus!", "success");
+            }
+            await fetchCertifications(currentQuery());
+        } catch (err) {
+            showToast("Permintaan ditolak", err.message, "error", 5000);
+        } finally {
+            button.disabled = false;
+        }
+    });
+
+    // ===== Pencarian dengan debouncing =====
+    searchInput.addEventListener("input", () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => fetchCertifications(currentQuery()), SEARCH_DEBOUNCE_DELAY);
+    });
+
+    searchForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        clearTimeout(debounceTimer);
+        fetchCertifications(currentQuery());
+    });
+
+    document.getElementById("retry-button").addEventListener("click", () => {
+        fetchCertifications(currentQuery());
+    });
 
     fetchCertifications();
 </script>
