@@ -11,8 +11,8 @@ class IsPortfolioOwnerOrReadOnly(BasePermission):
         )
 
 
-# Dipakai nanti untuk Certification (bagian pilihan tugasmu), supaya Editor tetap bisa update.
 class IsPortfolioOwnerOrEditorOrReadOnly(BasePermission):
+    message = "Kamu tidak punya izin untuk melakukan aksi ini pada sertifikasi."
     def has_permission(self, request, view):
         if request.method in SAFE_METHODS:
             return True
