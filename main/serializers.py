@@ -1,7 +1,7 @@
 from django.utils.html import strip_tags
 from rest_framework import serializers
 
-from main.models import Experience
+from main.models import Experience, Certification
 
 
 class ExperienceSerializer(serializers.ModelSerializer):
@@ -28,6 +28,44 @@ class ExperienceSerializer(serializers.ModelSerializer):
 
     def validate_description(self, value):
         return strip_tags(value).strip()
+
+    def get_star_count(self, obj):
+        return obj.starred_by.count()
+
+    def get_is_starred(self, obj):
+        request = self.context.get("request")
+        if request is None or not request.user.is_authenticated:
+            return False
+        return request.user in obj.starred_by.all()
+
+    def get_starred_by_names(self, obj):
+        return ", ".join(user.username for user in obj.starred_by.all())
+
+
+class CertificationSerializer(serializers.ModelSerializer):
+    star_count = serializers.SerializerMethodField()
+    is_starred = serializers.SerializerMethodField()
+    starred_by_names = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Certification
+        fields = [
+            "id", "title", "issuer", "issued_at", "credential_url", "thumbnail",
+            "star_count", "is_starred", "starred_by_names",
+        ]
+        read_only_fields = ["id"]
+
+    def validate_title(self, value):
+        value = strip_tags(value).strip()
+        if not value:
+            raise serializers.ValidationError("Judul sertifikasi tidak boleh kosong atau hanya berisi tag HTML.")
+        return value
+
+    def validate_issuer(self, value):
+        value = strip_tags(value).strip()
+        if not value:
+            raise serializers.ValidationError("Penerbit tidak boleh kosong atau hanya berisi tag HTML.")
+        return value
 
     def get_star_count(self, obj):
         return obj.starred_by.count()
